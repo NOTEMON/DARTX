@@ -344,7 +344,15 @@ async function fetchProducts() {
     const json = JSON.parse(text.substr(47).slice(0, -2));
     const rows = json.table.rows;
     if (!rows || rows.length === 0) { allProducts = []; renderProducts(); return; }
-    allProducts = rows.map(row => ({ id: row.c[0]?.v||'', name: row.c[1]?.v||'', category: (row.c[2]?.v||'').toLowerCase().trim(), price: parseFloat(row.c[3]?.v)||0, old_price: parseFloat(row.c[4]?.v)||0, image: row.c[5]?.v||'', badge: (row.c[6]?.v||'').toLowerCase().trim(), stock: parseInt(row.c[7]?.v)||0 })).filter(p => p.name);
+    function normCat(c) {
+      c = c.toLowerCase().trim();
+      if (['tshirt','t-shirt','tshirts','t shirt','t-shirts'].includes(c)) return 'shirts';
+      if (['shoe','sneaker','sneakers','boot','boots'].includes(c)) return 'shoes';
+      if (['hat','cap','caps'].includes(c)) return 'hats';
+      if (['jacket','jackets','hoodie','hoodies'].includes(c)) return 'jackets';
+      return c;
+    }
+    allProducts = rows.map(row => ({ id: String(row.c[0]?.v||''), name: row.c[1]?.v||'', category: normCat(row.c[2]?.v||''), price: parseFloat(row.c[3]?.v)||0, old_price: parseFloat(row.c[4]?.v)||0, image: row.c[5]?.v||'', badge: (row.c[6]?.v||'').toLowerCase().trim(), stock: parseInt(row.c[7]?.v)||0, description: row.c[8]?.v||'', sizes: row.c[9]?.v ? String(row.c[9].v).split(',').map(s=>s.trim()) : [] })).filter(p => p.name);
   } catch(e) { allProducts = []; }
   renderProducts();
 }
