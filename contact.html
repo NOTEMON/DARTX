@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — DARTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#0a1628;--white:#f0f7f4;--accent:#00b894;--accent-dark:#00896e;--gray:#7f8c8d;--light:#e8f5f0;--border:#cce8dc;--font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--black);font-family:var(--font-body);overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:9999;width:100%;animation:lb .5s ease forwards}
+@keyframes lb{from{width:0}to{width:100%}}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:64px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-logo{display:flex;align-items:center;text-decoration:none}
+.nav-logo img{height:34px;object-fit:contain;filter:brightness(10)}
+.nav-logo-text{font-family:var(--font-display);font-size:1.6rem;font-weight:900;letter-spacing:.1em;color:var(--white)}
+.nav-links{display:flex;gap:1.8rem;list-style:none}
+.nav-links a{color:rgba(255,255,255,.65);text-decoration:none;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--accent)}
+.nav-right{display:flex;gap:.5rem;align-items:center}
+.cart-nav-btn{background:var(--accent);color:var(--black);padding:.45rem 1rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+.hamburger{display:none;flex-direction:column;gap:6px;cursor:pointer;background:none;border:none;padding:8px}
+.hamburger span{display:block;height:2px;background:var(--white);border-radius:2px;transition:all .35s cubic-bezier(.23,1,.32,1)}
+.hamburger span:nth-child(1){width:22px}.hamburger span:nth-child(2){width:16px}.hamburger span:nth-child(3){width:20px}
+.hamburger.open span:nth-child(1){width:22px;transform:translateY(8px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0;transform:translateX(-8px)}
+.hamburger.open span:nth-child(3){width:22px;transform:translateY(-8px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;inset:0;background:var(--black);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.mobile-menu.open{display:flex}
+.mobile-menu a{color:var(--white);text-decoration:none;font-family:var(--font-display);font-size:2rem;font-weight:900;text-transform:uppercase;padding:.5rem 2rem;width:100%;max-width:300px;text-align:center;transition:color .2s}
+.mobile-menu a:hover{color:var(--accent)}
+.page-hero{margin-top:64px;padding:3rem 2.5rem 2rem;background:var(--black);color:var(--white)}
+.page-tag{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+.page-title{font-family:var(--font-display);font-size:clamp(2.5rem,5vw,5rem);font-weight:900;text-transform:uppercase;line-height:.9}
+.contact-layout{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.contact-info{padding:4rem 2.5rem;border-right:1px solid var(--border)}
+.info-desc{font-size:.9rem;color:var(--gray);line-height:1.8;margin-bottom:3rem;max-width:380px}
+.contact-cards{display:flex;flex-direction:column;gap:1px;margin-bottom:2.5rem;background:var(--border);border:1px solid var(--border)}
+.contact-card{display:flex;gap:1.2rem;align-items:flex-start;padding:1.2rem;background:var(--white);transition:background .2s}
+.contact-card:hover{background:var(--light)}
+.contact-card-icon{width:40px;height:40px;background:var(--black);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.contact-card-label{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;font-weight:500}
+.contact-card-value{font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--black)}
+.contact-card-sub{font-size:.75rem;color:var(--gray);margin-top:.2rem}
+.social-links{display:flex;gap:.5rem;flex-wrap:wrap}
+.social-link{padding:.5rem 1.2rem;border:1px solid var(--border);color:var(--black);text-decoration:none;font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;transition:all .2s}
+.social-link:hover{background:var(--accent);border-color:var(--accent);color:var(--black)}
+.contact-form-wrap{padding:4rem 2.5rem}
+.form-title{font-family:var(--font-display);font-size:1.5rem;font-weight:900;text-transform:uppercase;margin-bottom:2rem;color:var(--black)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{margin-bottom:1rem}
+.form-label{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem;display:block;font-weight:500}
+.form-input{width:100%;background:var(--white);border:1px solid var(--border);color:var(--black);padding:.75rem 1rem;font-family:var(--font-body);font-size:.88rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:#aaa}
+textarea.form-input{resize:vertical;min-height:120px}
+.submit-btn{background:var(--black);color:var(--white);border:none;padding:1rem 2.5rem;font-family:var(--font-display);font-size:1rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.submit-btn:hover{background:var(--accent);color:var(--black)}
+.form-success{display:none;background:var(--accent);color:var(--black);padding:2rem;text-align:center}
+.form-success h3{font-family:var(--font-display);font-size:2rem;font-weight:900;text-transform:uppercase;margin-bottom:.5rem}
+.form-success p{font-size:.85rem}
+.faq-section{background:var(--light);padding:5rem 2.5rem}
+.faq-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3.2rem);font-weight:900;text-transform:uppercase;margin-bottom:2.5rem;color:var(--black)}
+.faq-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+.faq-item{padding:2rem;background:var(--white);transition:background .2s}
+.faq-item:hover{background:var(--light)}
+.faq-q{font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;margin-bottom:.7rem;color:var(--black)}
+.faq-a{font-size:.82rem;color:var(--gray);line-height:1.7}
+.wa-float{position:fixed;bottom:1.5rem;right:1.5rem;width:52px;height:52px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:130;box-shadow:0 4px 16px rgba(37,211,102,.35);text-decoration:none;transition:transform .2s}
+.wa-float:hover{transform:scale(1.08)}
+.wa-float svg{width:26px;height:26px;fill:white}
+footer{background:#060f1e;color:var(--white);padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-copy{font-size:.72rem;color:rgba(255,255,255,.3)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{font-size:.72rem;color:rgba(255,255,255,.4);text-decoration:none;text-transform:uppercase;letter-spacing:.1em;transition:color .2s}
+.footer-links a:hover{color:var(--accent)}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+@media(max-width:900px){
+  nav{padding:0 1rem;height:56px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .page-hero{padding:2rem 1.2rem}
+  .contact-layout{grid-template-columns:1fr}
+  .contact-info{padding:2.5rem 1.2rem;border-right:none;border-bottom:1px solid var(--border)}
+  .contact-form-wrap{padding:2.5rem 1.2rem}
+  .form-row{grid-template-columns:1fr}
+  .faq-section{padding:3rem 1.2rem}
+  .faq-grid{grid-template-columns:1fr}
+  footer{padding:1.5rem 1.2rem}
+}
+</style>
+</head>
+<body>
+<div class="progress-bar"></div>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html" onclick="closeMobileMenu()">Home</a>
+  <a href="products.html" onclick="closeMobileMenu()">Shop</a>
+  <a href="design.html" onclick="closeMobileMenu()">Custom Design</a>
+  <a href="contact.html" onclick="closeMobileMenu()">Contact</a>
+  <a href="cart.html" onclick="closeMobileMenu()" style="background:var(--accent);color:var(--black);padding:.8rem 2.5rem;margin-top:.5rem" id="mobile-cart-link">Cart (0)</a>
+</div>
+<nav>
+  <a href="index.html" class="nav-logo"><img src="dartx-logo.png" alt="DARTX" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="nav-logo-text" style="display:none">DARTX</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="products.html">Shop</a></li>
+    <li><a href="design.html">Custom</a></li>
+    <li><a href="contact.html" class="active">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="cart.html" class="cart-nav-btn" id="nav-cart">Cart (0)</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="page-hero"><p class="page-tag">Get in touch</p><h1 class="page-title">Contact Us</h1></div>
+<div class="contact-layout">
+  <div class="contact-info reveal">
+    <p class="info-desc">Questions about your order or our gear? We reply fastest on WhatsApp. Based in Chittagong, delivering nationwide.</p>
+    <div class="contact-cards">
+      <div class="contact-card"><div class="contact-card-icon">📱</div><div><p class="contact-card-label">WhatsApp</p><p class="contact-card-value">+880 1XXX-XXXXXX</p><p class="contact-card-sub">Fastest — reply within 2 hours</p></div></div>
+      <div class="contact-card"><div class="contact-card-icon">📧</div><div><p class="contact-card-label">Email</p><p class="contact-card-value"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="651009110c0804110016110a17000701575152250208040c094b060a08">[email&#160;protected]</a></p><p class="contact-card-sub">For detailed enquiries</p></div></div>
+      <div class="contact-card"><div class="contact-card-icon">📍</div><div><p class="contact-card-label">Location</p><p class="contact-card-value">Chittagong, Bangladesh</p><p class="contact-card-sub">Nationwide delivery in 3–5 days</p></div></div>
+      <div class="contact-card"><div class="contact-card-icon">⏰</div><div><p class="contact-card-label">Hours</p><p class="contact-card-value">Sat – Thu, 10AM – 9PM</p><p class="contact-card-sub">Friday limited hours</p></div></div>
+    </div>
+    <div class="social-links">
+      <a href="https://www.instagram.com/dart.updates?igsh=MXBpbndpdHYycHNyZA==" target="_blank" class="social-link">Instagram</a>
+      <a href="https://www.facebook.com/share/1EVpZGevPk/" target="_blank" class="social-link">Facebook</a>
+      <a href="#" class="social-link">TikTok</a>
+      <a href="#" class="social-link">WhatsApp</a>
+    </div>
+  </div>
+  <div class="contact-form-wrap reveal">
+    <p class="form-title">Send a Message</p>
+    <div id="contact-form">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Your Name</label><input type="text" class="form-input" id="f-name" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="f-phone" placeholder="01XXXXXXXXX"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Topic</label><select class="form-input" id="f-topic"><option value="">Select a topic</option><option>Order enquiry</option><option>Product question</option><option>Return / Exchange</option><option>Delivery issue</option><option>Other</option></select></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea class="form-input" id="f-message" placeholder="How can we help?"></textarea></div>
+      <button class="submit-btn" onclick="submitForm()">Send Message</button>
+    </div>
+    <div class="form-success" id="form-success"><h3>Message Sent! ✓</h3><p>We'll get back to you on WhatsApp or email shortly.</p></div>
+  </div>
+</div>
+<section class="faq-section reveal">
+  <h2 class="faq-title">Frequently Asked</h2>
+  <div class="faq-grid">
+    <div class="faq-item"><p class="faq-q">How long does delivery take?</p><p class="faq-a">3–5 business days nationwide. Chittagong orders may arrive faster.</p></div>
+    <div class="faq-item"><p class="faq-q">How do I pay?</p><p class="faq-a">Cash on Delivery only. Pay when your parcel arrives at your door.</p></div>
+    <div class="faq-item"><p class="faq-q">Can I return or exchange?</p><p class="faq-a">Yes — within 3 days of delivery if unused. Contact us on WhatsApp.</p></div>
+    <div class="faq-item"><p class="faq-q">How do I track my order?</p><p class="faq-a">We send WhatsApp updates once your order is dispatched.</p></div>
+    <div class="faq-item"><p class="faq-q">Do you have a size guide?</p><p class="faq-a">Message us on WhatsApp and we'll help you pick the right size.</p></div>
+    <div class="faq-item"><p class="faq-q">Do you ship outside Bangladesh?</p><p class="faq-a">Bangladesh only for now. International shipping coming soon.</p></div>
+  </div>
+</section>
+<footer>
+  <p class="footer-copy">© 2026 DARTX. All rights reserved.</p>
+  <div class="footer-links"><a href="index.html">Home</a><a href="products.html">Shop</a><a href="cart.html">Cart</a></div>
+</footer>
+<a href="https://wa.me/8801XXXXXXXXX" target="_blank" class="wa-float"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');document.getElementById('hamburger').classList.toggle('open')}
+function closeMobileMenu(){document.getElementById('mobile-menu').classList.remove('open');document.getElementById('hamburger').classList.remove('open')}
+const cart=JSON.parse(localStorage.getItem('dartx_cart')||'[]');
+document.getElementById('nav-cart').textContent=`Cart (${cart.length})`;
+const ml=document.getElementById('mobile-cart-link');if(ml)ml.textContent=`Cart (${cart.length})`;
+function submitForm(){const n=document.getElementById('f-name').value.trim(),p=document.getElementById('f-phone').value.trim(),m=document.getElementById('f-message').value.trim();if(!n||!p||!m){alert('Please fill in name, phone, and message.');return}document.getElementById('contact-form').style.display='none';document.getElementById('form-success').style.display='block'}
+const observer=new Intersec
