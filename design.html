@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DARTX</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#0a1628;--white:#f0f7f4;--accent:#00b894;--accent-dark:#00896e;--accent2:#0984e3;--gray:#7f8c8d;--light:#e8f5f0;--border:#cce8dc;--font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--black);font-family:var(--font-body);overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:9999;width:100%;animation:lb .5s ease forwards}
+@keyframes lb{from{width:0}to{width:100%}}
+nav{position:fixed;top:3px;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:64px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-logo{display:flex;align-items:center;text-decoration:none}
+.nav-logo img{height:34px;object-fit:contain;filter:brightness(10)}
+.nav-logo-text{font-family:var(--font-display);font-size:1.6rem;font-weight:900;letter-spacing:.1em;color:var(--white)}
+.nav-links{display:flex;gap:1.8rem;list-style:none}
+.nav-links a{color:rgba(255,255,255,.65);text-decoration:none;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--accent)}
+.nav-right{display:flex;gap:.5rem;align-items:center}
+.cart-nav-btn{background:var(--accent);color:var(--black);padding:.45rem 1rem;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+.hamburger{display:none;flex-direction:column;gap:6px;cursor:pointer;background:none;border:none;padding:8px}
+.hamburger span{display:block;height:2px;background:var(--white);border-radius:2px;transition:all .35s cubic-bezier(.23,1,.32,1)}
+.hamburger span:nth-child(1){width:22px}.hamburger span:nth-child(2){width:16px}.hamburger span:nth-child(3){width:20px}
+.hamburger.open span:nth-child(1){width:22px;transform:translateY(8px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0;transform:translateX(-8px)}
+.hamburger.open span:nth-child(3){width:22px;transform:translateY(-8px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;inset:0;background:var(--black);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+.mobile-menu.open{display:flex}
+.mobile-menu a{color:var(--white);text-decoration:none;font-family:var(--font-display);font-size:2rem;font-weight:900;text-transform:uppercase;padding:.5rem 2rem;width:100%;max-width:300px;text-align:center;transition:color .2s}
+.mobile-menu a:hover{color:var(--accent)}
+.page-hero{margin-top:67px;background:var(--black);color:var(--white);padding:2.5rem}
+.hero-tag{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:.4rem}
+.hero-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,4rem);font-weight:900;text-transform:uppercase;line-height:.95;margin-bottom:.7rem}
+.hero-desc{font-size:.85rem;color:rgba(255,255,255,.5);max-width:500px;line-height:1.7}
+.product-selector{display:flex;border-bottom:2px solid var(--border);padding:0 0;background:var(--white)}
+.prod-tab{background:none;border:none;padding:1rem 2rem;font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;color:var(--gray);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s}
+.prod-tab.active{color:var(--black);border-bottom-color:var(--accent)}
+
+/* DESIGNER LAYOUT */
+.designer{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 220px)}
+
+/* CANVAS AREA */
+.canvas-area{background:var(--light);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;gap:1rem;position:relative}
+.canvas-container{position:relative;display:inline-block}
+#design-canvas{display:block;cursor:crosshair;box-shadow:0 8px 40px rgba(0,0,0,.15);max-width:100%;max-height:calc(100vh - 360px)}
+#design-canvas.dragging{cursor:grabbing}
+.canvas-tools{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
+.tool-btn{background:var(--white);border:1px solid var(--border);padding:.4rem .85rem;font-family:var(--font-display);font-size:.75rem;font-weight:700;text-transform:uppercase;cursor:pointer;transition:all .2s;color:var(--black);display:flex;align-items:center;gap:.3rem}
+.tool-btn:hover{background:var(--black);color:var(--white);border-color:var(--black)}
+.tool-btn.red:hover{background:#e84393;border-color:#e84393}
+.zoom-lbl{background:var(--white);border:1px solid var(--border);padding:.4rem .85rem;font-family:var(--font-display);font-size:.75rem;font-weight:700;color:var(--gray)}
+
+/* SIDE PANEL */
+.side-panel{border-left:1px solid var(--border);background:var(--white);display:flex;flex-direction:column;overflow-y:auto}
+.ps{padding:1rem 1.2rem;border-bottom:1px solid var(--border)}
+.pt{font-family:var(--font-display);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;color:var(--black);display:flex;align-items:center;justify-content:space-between}
+.upload-zone{border:2px dashed var(--border);padding:1.2rem;text-align:center;cursor:pointer;position:relative;background:var(--light);transition:all .2s}
+.upload-zone:hover{border-color:var(--accent);background:rgba(0,184,148,.05)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone p:first-child{font-size:1.5rem;margin-bottom:.3rem}
+.upload-zone .ut{font-family:var(--font-display);font-size:.8rem;font-weight:700;text-transform:uppercase;color:var(--black)}
+.upload-zone .us{font-size:.68rem;color:var(--gray);margin-top:.2rem}
+.color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.35rem}
+.csw{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.csw.active{border-color:var(--black);transform:scale(1.15)}
+.csw:hover{transform:scale(1.1)}
+.clbl{font-size:.68rem;color:var(--gray);margin-top:.4rem;text-align:center}
+.ctrl{display:flex;align-items:center;gap:.7rem;margin-bottom:.7rem}
+.clbl2{font-size:.68rem;color:var(--gray);min-width:52px;font-weight:500}
+.ctrl input[type=range]{flex:1;accent-color:var(--accent)}
+.cv{font-family:var(--font-display);font-size:.75rem;font-weight:700;min-width:32px;text-align:right;color:var(--black)}
+.ti{width:100%;border:1px solid var(--border);padding:.6rem .75rem;font-family:var(--font-body);font-size:.82rem;outline:none;transition:border-color .2s;margin-bottom:.6rem;color:var(--black)}
+.ti:focus{border-color:var(--accent)}
+.ti::placeholder{color:#bbb}
+.fsel{width:100%;border:1px solid var(--border);padding:.5rem .75rem;font-family:var(--font-body);font-size:.78rem;outline:none;margin-bottom:.6rem;cursor:pointer;color:var(--black)}
+.tcrow{display:flex;gap:.35rem;margin-bottom:.6rem;flex-wrap:wrap}
+.tcb{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s}
+.tcb.active{border-color:var(--black);transform:scale(1.1)}
+.layers-list{display:flex;flex-direction:column;gap:.3rem;max-height:120px;overflow-y:auto}
+.li{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border:1px solid var(--border);font-size:.74rem;cursor:pointer;transition:background .2s}
+.li:hover,.li.sel{background:var(--light);border-color:var(--accent)}
+.ln{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ldel{background:none;border:none;cursor:pointer;color:var(--gray);font-size:.85rem;transition:color .2s}
+.ldel:hover{color:var(--accent)}
+.order-sec{padding:1rem 1.2rem;margin-top:auto;border-top:2px solid var(--border)}
+.size-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.7rem}
+.sb{border:1px solid var(--border);background:var(--white);padding:.35rem .7rem;font-family:var(--font-display);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s;color:var(--black)}
+.sb:hover,.sb.active{background:var(--black);color:var(--white);border-color:var(--black)}
+.ptag{font-family:var(--font-display);font-size:1.3rem;font-weight:900;margin-bottom:.7rem;color:var(--accent)}
+.ptag span{font-size:.75rem;color:var(--gray);font-weight:400;font-family:var(--font-body);margin-left:.3rem}
+.obtn{width:100%;background:var(--accent);color:var(--black);border:none;padding:.85rem;font-family:var(--font-display);font-size:.9rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:.4rem}
+.obtn:hover{background:var(--accent-dark);color:var(--white)}
+.sbtn{width:100%;background:var(--black);color:var(--white);border:none;padding:.7rem;font-family:var(--font-display);font-size:.82rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.sbtn:hover{background:var(--gray)}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(10,22,40,.75);z-index:200;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.modal{background:var(--white);width:90%;max-width:460px;padding:1.8rem;max-height:90vh;overflow-y:auto}
+.mtitle{font-family:var(--font-display);font-size:1.4rem;font-weight:900;text-transform:uppercase;margin-bottom:1.2rem;color:var(--black)}
+.mprev{width:100%;max-height:160px;object-fit:contain;border:1px solid var(--border);margin-bottom:1.2rem;background:var(--light)}
+.mform{display:flex;flex-direction:column;gap:.7rem}
+.mi{border:1px solid var(--border);padding:.7rem .9rem;font-family:var(--font-body);font-size:.85rem;outline:none;width:100%;transition:border-color .2s;color:var(--black)}
+.mi:focus{border-color:var(--accent)}
+.mi::placeholder{color:#bbb}
+.mbtns{display:flex;gap:.7rem;margin-top:.4rem}
+.msub{flex:1;background:var(--accent);color:var(--black);border:none;padding:.85rem;font-family:var(--font-display);font-size:.88rem;font-weight:900;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.msub:hover{background:var(--accent-dark);color:var(--white)}
+.mcan{flex:1;background:none;border:1px solid var(--border);padding:.85rem;font-family:var(--font-display);font-size:.88rem;font-weight:700;text-transform:uppercase;cursor:pointer}
+.mcan:hover{background:var(--light)}
+
+.toast{position:fixed;bottom:1.5rem;right:5rem;background:var(--black);color:var(--white);padding:.85rem 1.4rem;font-family:var(--font-display);font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;z-index:9999;text-align:center;animation:fadeUp .3s ease;border-left:3px solid var(--accent)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.wa-float{position:fixed;bottom:1.5rem;right:1.5rem;width:52px;height:52px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:130;box-shadow:0 4px 16px rgba(37,211,102,.35);text-decoration:none;transition:transform .2s}
+.wa-float:hover{transform:scale(1.08)}
+.wa-float svg{width:26px;height:26px;fill:white}
+footer{background:#060f1e;color:var(--white);padding:1.8rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-copy{font-size:.72rem;color:rgba(255,255,255,.3)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{font-size:.72rem;color:rgba(255,255,255,.4);text-decoration:none;text-transform:uppercase;letter-spacing:.1em;transition:color .2s}
+.footer-links a:hover{color:var(--accent)}
+@media(max-width:900px){
+  nav{padding:0 1rem;height:56px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .page-hero{padding:1.8rem 1.2rem}
+  .designer{grid-template-columns:1fr;height:auto}
+  .canvas-area{padding:1.2rem;min-height:60vw}
+  #design-canvas{max-height:80vw}
+  .side-panel{border-left:none;border-top:1px solid var(--border)}
+  footer{padding:1.5rem 1.2rem}
+  .toast{right:1.5rem;left:1.5rem}
+}
+</style>
+</head>
+<body>
+<div class="progress-bar"></div>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html" onclick="closeMobileMenu()">Home</a>
+  <a href="products.html" onclick="closeMobileMenu()">Shop</a>
+  <a href="design.html" onclick="closeMobileMenu()">Custom Design</a>
+  <a href="contact.html" onclick="closeMobileMenu()">Contact</a>
+  <a href="cart.html" onclick="closeMobileMenu()" style="background:var(--accent);color:var(--black);padding:.8rem 2.5rem;margin-top:.5rem" id="mobile-cart-link">Cart (0)</a>
+</div>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="dartx-logo.png" alt="DARTX" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="nav-logo-text" style="display:none">DARTX</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="products.html">Shop</a></li>
+    <li><a href="design.html" class="active">Custom Design</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="cart.html" class="cart-nav-btn" id="nav-cart">Cart (0)</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <p class="hero-tag">DARTX Custom Studio</p>
+  <h1 class="hero-title">Design Your Own</h1>
+  <p class="hero-desc">Upload your logo or artwork — it appears live on the product mockup. Drag, resize, rotate to perfect your design, then order!</p>
+</div>
+
+<div class="product-selector">
+  <button class="prod-tab active" onclick="switchProduct('tshirt',this)">👕 T-Shirt</button>
+  <button class="prod-tab" onclick="switchProduct('shoe',this)">👟 Shoe</button>
+</div>
+
+<div class="designer">
+  <!-- CANVAS -->
+  <div class="canvas-area">
+    <div class="canvas-container">
+      <canvas id="design-canvas" width="600" height="600"></canvas>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn" onclick="zoomIn()">+ Zoom</button>
+      <button class="tool-btn" onclick="zoomOut()">- Zoom</button>
+      <div class="zoom-lbl" id="zoom-lbl">100%</div>
+      <button class="tool-btn" onclick="centerDesign()">⊕ Center</button>
+      <button class="tool-btn" onclick="flipH()">↔ Flip H</button>
+      <button class="tool-btn" onclick="flipV()">↕ Flip V</button>
+      <button class="tool-btn red" onclick="removeSelected()">✕ Remove</button>
+      <button class="tool-btn red" onclick="clearAll()">Clear All</button>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side-panel">
+    <!-- Upload -->
+    <div class="ps">
+      <p class="pt">Upload Design</p>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" accept="image/*" onchange="handleUpload(this.files[0])">
+        <p>⬆️</p>
+        <p class="ut">Click or Drag & Drop</p>
+        <p class="us">PNG, JPG, SVG — Max 5MB</p>
+      </div>
+    </div>
+
+    <!-- Color -->
+    <div class="ps">
+      <p class="pt">
+        Product Color
+        <button onclick="openEyedropper()" style="background:none;border:1px solid var(--border);padding:.2rem .5rem;font-size:.62rem;cursor:pointer;font-family:var(--font-display);font-weight:700;transition:all .2s" onmouseover="this.style.background='var(--black)';this.style.color='white'" onmouseout="this.style.background='none';this.style.color='var(--black)'">💉 Eyedropper</button>
+      </p>
+      <div class="color-grid">
+        <div class="csw active" style="background:#ffffff;border-color:#ddd" onclick="setColor('#ffffff',this,'White')" title="White"></div>
+        <div class="csw" style="background:#0a1628" onclick="setColor('#0a1628',this,'Navy')" title="Navy"></div>
+        <div class="csw" style="background:#00b894" onclick="setColor('#00b894',this,'Green')" title="Green"></div>
+        <div class="csw" style="background:#0984e3" onclick="setColor('#0984e3',this,'Blue')" title="Blue"></div>
+        <div class="csw" style="background:#e8533a" onclick="setColor('#e8533a',this,'Red')" title="Red"></div>
+        <div class="csw" style="background:#2d3436" onclick="setColor('#2d3436',this,'Dark Gray')" title="Dark Gray"></div>
+        <div class="csw" style="background:#6c5ce7" onclick="setColor('#6c5ce7',this,'Purple')" title="Purple"></div>
+        <div class="csw" style="background:#fdcb6e" onclick="setColor('#fdcb6e',this,'Yellow')" title="Yellow"></div>
+        <div class="csw" style="background:#2d6a4f" onclick="setColor('#2d6a4f',this,'Forest')" title="Forest"></div>
+        <div class="csw" style="background:#00cec9" onclick="setColor('#00cec9',this,'Teal')" title="Teal"></div>
+        <div class="csw" style="background:#e84393" onclick="setColor('#e84393',this,'Pink')" title="Pink"></div>
+        <div class="csw" style="background:#b2bec3;border-color:#ddd" onclick="setColor('#b2bec3',this,'Light Gray')" title="Light Gray"></div>
+      </div>
+      <p class="clbl" id="color-label">White</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="ps">
+      <p class="pt">Design Controls</p>
+      <div class="ctrl"><span class="clbl2">Size</span><input type="range" min="10" max="400" value="150" id="sz-sl" oninput="resizeSel(this.value)"><span class="cv" id="sz-v">150</span></div>
+      <div class="ctrl"><span class="clbl2">Rotate</span><input type="range" min="-180" max="180" value="0" id="rot-sl" oninput="rotateSel(this.value)"><span class="cv" id="rot-v">0°</span></div>
+      <div class="ctrl"><span class="clbl2">Opacity</span><input type="range" min="10" max="100" value="100" id="op-sl" oninput="opacitySel(this.value)"><span class="cv" id="op-v">100%</span></div>
+    </div>
+
+    <!-- Text -->
+    <div class="ps">
+      <p class="pt">Add Text</p>
+      <input type="text" class="ti" id="txt-in" placeholder="Type your text...">
+      <select class="fsel" id="fsel">
+        <option value="Barlow Condensed">Barlow Condensed</option>
+        <option value="Arial">Arial</option>
+        <option value="Impact">Impact</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+      <div class="tcrow">
+        <div class="tcb active" style="background:#0a1628" onclick="setTxtColor('#0a1628',this)"></div>
+        <div class="tcb" style="background:#ffffff;border:1px solid #ddd" onclick="setTxtColor('#ffffff',this)"></div>
+        <div class="tcb" style="background:#00b894" onclick="setTxtColor('#00b894',this)"></div>
+        <div class="tcb" style="background:#0984e3" onclick="setTxtColor('#0984e3',this)"></div>
+        <div class="tcb" style="background:#e8533a" onclick="setTxtColor('#e8533a',this)"></div>
+        <div class="tcb" style="background:#fdcb6e" onclick="setTxtColor('#fdcb6e',this)"></div>
+      </div>
+      <button class="tool-btn" style="width:100%;justify-content:center" onclick="addText()">+ Add Text</button>
+    </div>
+
+    <!-- Layers -->
+    <div class="ps">
+      <p class="pt">Layers</p>
+      <div class="layers-list" id="layers-list"><p style="font-size:.72rem;color:var(--gray);text-align:center;padding:.8rem">No layers yet</p></div>
+    </div>
+
+    <!-- Order -->
+    <div class="order-sec">
+      <p style="font-family:var(--font-display);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.7rem">Size & Order</p>
+      <div class="size-row" id="size-row">
+        <button class="sb" onclick="selSize(this)">S</button>
+        <button class="sb" onclick="selSize(this)">M</button>
+        <button class="sb active" onclick="selSize(this)">L</button>
+        <button class="sb" onclick="selSize(this)">XL</button>
+        <button class="sb" onclick="selSize(this)">XXL</button>
+      </div>
+      <p class="ptag" id="ptag">৳ 1,500 <span>Custom Design</span></p>
+      <button class="obtn" onclick="openModal()">🛍 Place Custom Order</button>
+      <button class="sbtn" onclick="saveImg()">⬇ Save Design Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="mbg" id="mbg">
+  <div class="modal">
+    <p class="mtitle">Place Custom Order</p>
+    <img id="mprev" class="mprev" src="" alt="Your Design">
+    <div class="mform">
+      <input type="text" class="mi" id="mn" placeholder="Your Full Name *">
+      <input type="tel" class="mi" id="mph" placeholder="Phone Number * (01XXXXXXXXX)">
+      <textarea class="mi" id="mad" placeholder="Delivery Address *" style="min-height:65px;resize:vertical"></textarea>
+      <input type="text" class="mi" id="mnt" placeholder="Notes (color, size details, etc.)">
+      <div class="mbtns">
+        <button class="mcan" onclick="closeModal()">Cancel</button>
+        <button class="msub" onclick="submitOrder()">Confirm via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/8801XXXXXXXXX" target="_blank" class="wa-float"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+
+<footer>
+  <p class="footer-copy">© 2026 DARTX. All rights reserved.</p>
+  <div class="footer-links"><a href="index.html">Home</a><a href="products.html">Shop</a><a href="contact.html">Contact</a></div>
+</footer>
+
+<script>
+const WA='8801XXXXXXXXX';
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');document.getElementById('hamburger').classList.toggle('open')}
+function closeMobileMenu(){document.getElementById('mobile-menu').classList.remove('open');document.getElementById('hamburger').classList.remove('open')}
+const crt=JSON.parse(localStorage.getItem('nuraniq_cart')||'[]');
+document.getElementById('nav-cart').textContent=`Cart (${crt.length})`;
+
+function showToast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+// ============ CANVAS ENGINE ============
+const canvas=document.getElementById('design-canvas');
+const ctx=canvas.getContext('2d');
+const W=canvas.width, H=canvas.height;
+
+// Mockup images
+const tshirtImg=new Image();
+tshirtImg.src='tshirt-mockup.jpg';
+const shoeImg=new Image(); // fallback drawn if no image
+
+let currentProduct='tshirt';
+let productColor='#ffffff';
+let layers=[];
+let selIdx=null;
+let dragging=false;
+let dragStart={x:0,y:0};
+let zoom=1;
+let txtColor='#0a1628';
+let selectedSize='L';
+
+// Design zones (as fraction of canvas)
+const zones={
+  tshirt:{x:.28,y:.28,w:.44,h:.42},
+  shoe:{x:.28,y:.32,w:.44,h:.32}
+};
+
+// ---- DRAW MOCKUP ----
+function drawMockup(){
+  ctx.clearRect(0,0,W,H);
+
+  if(currentProduct==='tshirt'){
+    // Draw background canvas color
+    ctx.fillStyle='#e8f5f0';
+    ctx.fillRect(0,0,W,H);
+
+    if(tshirtImg.complete&&tshirtImg.naturalWidth>0){
+      // Draw t-shirt image full canvas
+      ctx.drawImage(tshirtImg,0,0,W,H);
+
+      // Tint the shirt with chosen color using multiply blend
+      if(productColor!=='#ffffff'&&productColor!=='#f0f7f4'){
+        ctx.save();
+        ctx.globalCompositeOperation='multiply';
+        ctx.fillStyle=productColor;
+        // Only tint the shirt area (rough bounds)
+        ctx.fillRect(W*.1,H*.12,W*.8,H*.78);
+        ctx.restore();
+      }
+    } else {
+      // Fallback: draw t-shirt shape
+      drawTshirtShape(ctx,productColor,W,H);
+    }
+  } else {
+    // Shoe: draw shape
+    ctx.fillStyle='#e8f5f0';
+    ctx.fillRect(0,0,W,H);
+    drawShoeShape(ctx,productColor,W,H);
+  }
+}
+
+function drawTshirtShape(ctx,color,w,h){
+  ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=20;ctx.shadowOffsetY=6;
+  ctx.fillStyle=color;ctx.strokeStyle=color==='#ffffff'?'rgba(0,0,0,.12)':'rgba(255,255,255,.15)';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(w*.28,h*.10);ctx.lineTo(w*.03,h*.22);ctx.lineTo(w*.03,h*.42);ctx.lineTo(w*.18,h*.36);ctx.lineTo(w*.18,h*.88);ctx.lineTo(w*.82,h*.88);ctx.lineTo(w*.82,h*.36);ctx.lineTo(w*.97,h*.42);ctx.lineTo(w*.97,h*.22);ctx.lineTo(w*.72,h*.10);
+  ctx.quadraticCurveTo(w*.65,h*.05,w*.5,h*.06);ctx.quadraticCurveTo(w*.35,h*.05,w*.28,h*.10);
+  ctx.closePath();ctx.fill();ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.stroke();
+}
+
+function drawShoeShape(ctx,color,w,h){
+  const isDark=!['#ffffff','#f0f7f4','#e8f5f0'].includes(color.toLowerCase());
+  ctx.shadowColor='rgba(0,0,0,.2)';ctx.shadowBlur=16;ctx.shadowOffsetY=8;
+  ctx.fillStyle='#222';ctx.beginPath();ctx.ellipse(w*.5,h*.84,w*.4,h*.06,-.05,0,Math.PI*2);ctx.fill();
+  ctx.shadowColor='transparent';ctx.shadowBlur=0;
+  ctx.fillStyle='#eee';ctx.beginPath();ctx.moveTo(w*.11,h*.78);ctx.lineTo(w*.89,h*.78);ctx.quadraticCurveTo(w*.92,h*.78,w*.92,h*.81);ctx.quadraticCurveTo(w*.92,h*.83,w*.89,h*.83);ctx.lineTo(w*.11,h*.83);ctx.quadraticCurveTo(w*.08,h*.83,w*.08,h*.81);ctx.quadraticCurveTo(w*.08,h*.78,w*.11,h*.78);ctx.closePath();ctx.fill();
+  ctx.fillStyle=color;ctx.strokeStyle=isDark?'rgba(255,255,255,.2)':'rgba(0,0,0,.15)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(w*.09,h*.78);ctx.lineTo(w*.09,h*.52);ctx.quadraticCurveTo(w*.1,h*.28,w*.26,h*.22);ctx.quadraticCurveTo(w*.42,h*.17,w*.58,h*.19);ctx.quadraticCurveTo(w*.78,h*.22,w*.88,h*.38);ctx.lineTo(w*.91,h*.78);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=isDark?color+'cc':'#ececec';ctx.beginPath();ctx.moveTo(w*.09,h*.78);ctx.lineTo(w*.09,h*.56);ctx.quadraticCurveTo(w*.11,h*.42,w*.24,h*.38);ctx.lineTo(w*.3,h*.78);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=isDark?'rgba(255,255,255,.15)':'#f8f8f8';ctx.beginPath();ctx.moveTo(w*.43,h*.22);ctx.lineTo(w*.57,h*.22);ctx.lineTo(w*.59,h*.54);ctx.quadraticCurveTo(w*.5,h*.57,w*.41,h*.54);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.25)';ctx.lineWidth=1.5;
+  for(let i=0;i<5;i++){const y=h*(.28+i*.05);ctx.beginPath();ctx.moveTo(w*.43,y);ctx.lineTo(w*.57,y);ctx.stroke()}
+}
+
+// ---- RENDER ALL ----
+function render(){
+  drawMockup();
+
+  // Draw design zone hint when empty
+  if(layers.length===0){
+    const z=zones[currentProduct];
+    ctx.strokeStyle='rgba(0,184,148,.5)';
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([6,4]);
+    ctx.strokeRect(W*z.x,H*z.y,W*z.w,H*z.h);
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(0,130,80,.55)';
+    ctx.font='bold 13px DM Sans,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('⬆ Upload your design here',W*.5,H*(z.y+z.h/2));
+    ctx.textAlign='left';
+  }
+
+  // Draw layers
+  layers.forEach((l,i)=>{
+    ctx.save();
+    ctx.globalAlpha=l.opacity||1;
+    const cx=l.x+l.w/2, cy=l.y+l.h/2;
+    ctx.translate(cx,cy);
+    ctx.rotate((l.rotate||0)*Math.PI/180);
+    if(l.flipH)ctx.scale(-1,1);
+    if(l.flipV)ctx.scale(1,-1);
+    if(l.type==='image'){
+      ctx.drawImage(l.img,-l.w/2,-l.h/2,l.w,l.h);
+    } else if(l.type==='text'){
+      ctx.font=`bold ${l.fontSize}px "${l.font}"`;
+      ctx.fillStyle=l.color;
+      ctx.textAlign='center';
+      ctx.fillText(l.text,0,l.fontSize/3);
+    }
+    if(selIdx===i){
+      ctx.strokeStyle='#00b894';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+      ctx.strokeRect(-l.w/2-4,-l.h/2-4,l.w+8,l.h+8);ctx.setLineDash([]);
+      ctx.fillStyle='#00b894';
+      [[-l.w/2-4,-l.h/2-4],[l.w/2+4,-l.h/2-4],[-l.w/2-4,l.h/2+4],[l.w/2+4,l.h/2+4]].forEach(([hx,hy])=>ctx.fillRect(hx-4,hy-4,8,8));
+    }
+    ctx.restore();
+  });
+
+  updateLayers();
+}
+
+// Load tshirt image then render
+tshirtImg.onload=()=>render();
+tshirtImg.onerror=()=>render();
+render();
+
+// ---- UPLOAD ----
+function handleUpload(file){
+  if(!file)return;
+  if(file.size>5*1024*1024){showToast('Max 5MB!');return}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const z=zones[currentProduct];
+      const maxW=W*z.w, maxH=H*z.h;
+      const ratio=Math.min(maxW/img.width,maxH/img.height,.8);
+      const lw=img.width*ratio, lh=img.height*ratio;
+      const lx=W*z.x+(maxW-lw)/2, ly=H*z.y+(maxH-lh)/2;
+      layers.push({type:'image',img,x:lx,y:ly,w:lw,h:lh,rotate:0,opacity:1,flipH:false,flipV:false,name:file.name.split('.')[0].substring(0,16)});
+      selIdx=layers.length-1;updateSliders();render();
+      showToast('Design uploaded! Drag to reposition.');
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ---- DRAG ----
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const sx=canvas.width/r.width, sy=canvas.height/r.height;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx-r.left)*sx,y:(cy-r.top)*sy};
+}
+function hitTest(p){
+  for(let i=layers.length-1;i>=0;i--){const l=layers[i];if(p.x>=l.x&&p.x<=l.x+l.w&&p.y>=l.y&&p.y<=l.y+l.h)return i}return -1;
+}
+canvas.addEventListener('mousedown',e=>{const p=getPos(e);const h=hitTest(p);if(h!==-1){selIdx=h;dragging=true;dragStart={x:p.x-layers[h].x,y:p.y-layers[h].y};canvas.classList.add('dragging');updateSliders();render()}else{selIdx=null;render()}});
+canvas.addEventListener('mousemove',e=>{if(!dragging||selIdx===null)return;const p=getPos(e);layers[selIdx].x=p.x-dragStart.x;layers[selIdx].y=p.y-dragStart.y;render()});
+canvas.addEventListener('mouseup',()=>{dragging=false;canvas.classList.remove('dragging')});
+canvas.addEventListener('mouseleave',()=>{dragging=false;canvas.classList.remove('dragging')});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const p=getPos(e);const h=hitTest(p);if(h!==-1){selIdx=h;dragging=true;dragStart={x:p.x-layers[h].x,y:p.y-layers[h].y};updateSliders();render()}},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging||selIdx===null)return;const p=getPos(e);layers[selIdx].x=p.x-dragStart.x;layers[selIdx].y=p.y-dragStart.y;render()},{passive:false});
+canvas.addEventListener('touchend',()=>{dragging=false});
+
+// ---- CONTROLS ----
+function resizeSel(v){document.getElementById('sz-v').textContent=v;if(selIdx===null)return;const l=layers[selIdx];if(l.type==='image'){const r=l.h/l.w;l.w=+v;l.h=l.w*r}else l.fontSize=+v;render()}
+function rotateSel(v){document.getElementById('rot-v').textContent=v+'°';if(selIdx===null)return;layers[selIdx].rotate=+v;render()}
+function opacitySel(v){document.getElementById('op-v').textContent=v+'%';if(selIdx===null)return;layers[selIdx].opacity=+v/100;render()}
+function updateSliders(){if(selIdx===null)return;const l=layers[selIdx];const sv=l.type==='text'?(l.fontSize||40):Math.round(l.w||150);document.getElementById('sz-sl').value=sv;document.getElementById('sz-v').textContent=sv;document.getElementById('rot-sl').value=l.rotate||0;document.getElementById('rot-v').textContent=(l.rotate||0)+'°';document.getElementById('op-sl').value=Math.round((l.opacity||1)*100);document.getElementById('op-v').textContent=Math.round((l.opacity||1)*100)+'%'}
+function zoomIn(){zoom=Math.min(zoom+.1,3);canvas.style.transform=`scale(${zoom})`;document.getElementById('zoom-lbl').textContent=Math.round(zoom*100)+'%'}
+function zoomOut(){zoom=Math.max(zoom-.1,.3);canvas.style.transform=`scale(${zoom})`;document.getElementById('zoom-lbl').textContent=Math.round(zoom*100)+'%'}
+function centerDesign(){if(selIdx===null)return;layers[selIdx].x=W/2-layers[selIdx].w/2;layers[selIdx].y=H/2-layers[selIdx].h/2;render()}
+function flipH(){if(selIdx===null)return;layers[selIdx].flipH=!layers[selIdx].flipH;render()}
+function flipV(){if(selIdx===null)return;layers[selIdx].flipV=!layers[selIdx].flipV;render()}
+function removeSelected(){if(selIdx===null)return;layers.splice(selIdx,1);selIdx=null;render()}
+function clearAll(){if(layers.length===0)return;if(!confirm('Clear all layers?'))return;layers=[];selIdx=null;render()}
+function setColor(c,el,name){productColor=c;document.querySelectorAll('.csw').forEach(s=>s.classList.remove('active'));el.classList.add('active');document.getElementById('color-label').textContent=name;render()}
+function setTxtColor(c,el){txtColor=c;document.querySelectorAll('.tcb').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+function addText(){
+  const txt=document.getElementById('txt-in').value.trim();
+  if(!txt){showToast('Type some text first!');return}
+  const font=document.getElementById('fsel').value;
+  const fontSize=42;
+  const z=zones[currentProduct];
+  layers.push({type:'text',text:txt,font,fontSize,color:txtColor,x:W*(z.x+z.w/2)-fontSize*txt.length*.28,y:H*(z.y+z.h/2)-fontSize/2,w:fontSize*txt.length*.6,h:fontSize*1.5,rotate:0,opacity:1,flipH:false,flipV:false,name:`"${txt.substring(0,12)}"`});
+  selIdx=layers.length-1;document.getElementById('txt-in').value='';updateSliders();render();
+  showToast('Text added!');
+}
+function updateLayers(){
+  const list=document.getElementById('layers-list');
+  if(!layers.length){list.innerHTML='<p style="font-size:.72rem;color:var(--gray);text-align:center;padding:.8rem">No layers yet</p>';return}
+  list.innerHTML=layers.map((l,i)=>`<div class="li${selIdx===i?' sel':''}" onclick="selLayer(${i})"><span style="font-size:.85rem">${l.type==='image'?'🖼':'T'}</span><span class="ln">${l.name||l.text||'Layer '+(i+1)}</span><button class="ldel" onclick="event.stopPropagation();delLayer(${i})">✕</button></div>`).join('');
+}
+function selLayer(i){selIdx=i;updateSliders();render()}
+function delLayer(i){layers.splice(i,1);if(selIdx>=layers.length)selIdx=layers.length-1;render()}
+
+// ---- PRODUCT SWITCH ----
+function switchProduct(type,el){
+  currentProduct=type;
+  document.querySelectorAll('.prod-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  const sr=document.getElementById('size-row');
+  const sizes=type==='tshirt'?['S','M','L','XL','XXL']:['38','39','40','41','42','43','44'];
+  sr.innerHTML=sizes.map((s,i)=>`<button class="sb${i===2?' active':''}" onclick="selSize(this)">${s}</button>`).join('');
+  selectedSize=sizes[2];
+  document.getElementById('ptag').innerHTML=`৳ ${type==='tshirt'?'1,500':'2,000'} <span>Custom Design</span>`;
+  render();
+}
+function selSize(el){document.querySelectorAll('.sb').forEach(b=>b.classList.remove('active'));el.classList.add('active');selectedSize=el.textContent}
+
+// ---- DRAG & DROP FILE ----
+const uz=document.getElementById('upload-zone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('active')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('active'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('active');handleUpload(e.dataTransfer.files[0])});
+
+// ---- EYEDROPPER ----
+async function openEyedropper(){
+  if(!window.EyeDropper){showToast('Eyedropper works in Chrome only!');return}
+  try{const r=await new EyeDropper().open();setColor(r.sRGBHex,{classList:{add:()=>{},remove:()=>{}}},r.sRGBHex);document.querySelectorAll('.csw').forEach(s=>s.classList.remove('active'));document.getElementById('color-label').textContent=r.sRGBHex;showToast('Color: '+r.sRGBHex)}
+  catch(e){if(e.name!=='AbortError')showToast('Could not pick color.')}
+}
+
+// ---- SAVE ----
+function saveImg(){
+  if(!layers.length){showToast('Add a design first!');return}
+  const a=document.createElement('a');a.download=`dartx-design-${Date.now()}.png`;a.href=canvas.toDataURL('image/png');a.click();showToast('Design saved!')
+}
+
+// ---- ORDER ----
+function openModal(){
+  if(!layers.length){showToast('Upload a design first!');return}
+  document.getElementById('mprev').src=canvas.toDataURL('image/png');
+  document.getElementById('mbg').classList.add('open');
+}
+function closeModal(){document.getElementById('mbg').classList.remove('open')}
+function submitOrder(){
+  const name=document.getElementById('mn').value.trim();
+  const phone=document.getElementById('mph').value.trim();
+  const addr=document.getElementById('mad').value.trim();
+  const note=document.getElementById('mnt').value.trim();
+  if(!name||!phone||!addr){showToast('Fill in name, phone and address.');return}
+  const prod=currentProduct==='tshirt'?'Custom T-Shirt':'Custom Shoe';
+  const price=currentProduct==='tshirt'?1500:2000;
+  const msg=`🎨 *DARTX Custom Design Order*\n\nProduct: ${prod}\nSize: ${selectedSize}\nColor: ${document.getElementById('color-label').textContent}\nPrice: ৳${price}\n\nName: ${name}\nPhone: ${phone}\nAddress: ${addr}${note?'\nNote: '+note:''}\n\n_Design image will be sent next._`;
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
+  closeModal();showToast('Opening WhatsApp! Send design image too.');
+}
+</script>
+</body>
+</html>
