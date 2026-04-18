@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DARTX Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--black:#0a1628;--white:#f0f7f4;--accent:#00b894;--accent-dark:#00896e;--accent2:#0984e3;--gray:#7f8c8d;--light:#e8f5f0;--border:#cce8dc;--red:#e84393;--yellow:#fdcb6e;--font-display:'Barlow Condensed',sans-serif;--font-body:'DM Sans',sans-serif;--sidebar:240px}
+html,body{height:100%;font-family:var(--font-body);background:#0d1117;color:var(--white);overflow-x:hidden}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 50%,rgba(0,184,148,.12) 0%,transparent 60%),var(--black)}
+.login-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:3rem;width:100%;max-width:400px}
+.login-logo{font-family:var(--font-display);font-size:2rem;font-weight:900;letter-spacing:.1em;color:var(--white);margin-bottom:.3rem}
+.login-sub{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:2.5rem}
+.l-label{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.4rem;display:block;font-weight:500}
+.l-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.8rem 1rem;font-family:var(--font-body);font-size:.9rem;outline:none;margin-bottom:1rem;transition:border-color .2s}
+.l-input:focus{border-color:var(--accent)}
+.l-input::placeholder{color:rgba(255,255,255,.25)}
+.l-btn{width:100%;background:var(--accent);color:var(--black);border:none;padding:1rem;font-family:var(--font-display);font-size:1rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.l-btn:hover{background:var(--accent-dark);color:var(--white)}
+.l-err{background:rgba(232,67,147,.15);border:1px solid rgba(232,67,147,.3);color:var(--red);padding:.7rem 1rem;font-size:.78rem;margin-bottom:1rem;display:none}
+.l-hint{font-size:.68rem;color:rgba(255,255,255,.3);margin-top:1rem;text-align:center}
+
+/* ── ADMIN LAYOUT ── */
+.admin-wrap{display:none;min-height:100vh;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:56px 1fr}
+.admin-wrap.visible{display:grid}
+
+/* ── TOPBAR ── */
+.topbar{grid-column:1/-1;background:#060d18;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:50}
+.tb-brand{font-family:var(--font-display);font-size:1.2rem;font-weight:900;letter-spacing:.1em;color:var(--white);display:flex;align-items:center;gap:.7rem}
+.tb-brand span{background:var(--accent);color:var(--black);font-size:.55rem;font-weight:700;letter-spacing:.2em;padding:.15rem .5rem;text-transform:uppercase}
+.tb-right{display:flex;align-items:center;gap:1rem}
+.tb-status{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:rgba(255,255,255,.5)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tb-logout{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:.3rem .8rem;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.08em;text-transform:uppercase}
+.tb-logout:hover{background:rgba(232,67,147,.2);border-color:var(--red);color:var(--red)}
+.tb-store-link{color:var(--accent);text-decoration:none;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;border-bottom:1px solid rgba(0,184,148,.3)}
+.tb-store-link:hover{border-bottom-color:var(--accent)}
+
+/* ── SIDEBAR ── */
+.sidebar{background:#060d18;border-right:1px solid rgba(255,255,255,.06);padding:1.5rem 0;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px)}
+.nav-section{padding:0 1rem;margin-bottom:1.5rem}
+.nav-section-title{font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:0 .5rem;margin-bottom:.5rem;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;color:rgba(255,255,255,.55);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:4px;transition:all .2s;border-left:2px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:var(--white)}
+.nav-item.active{background:rgba(0,184,148,.12);color:var(--accent);border-left-color:var(--accent)}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:.5rem;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 .3rem}
+
+/* ── MAIN CONTENT ── */
+.main{padding:2rem;overflow-y:auto;background:#0d1117}
+.page-section{display:none}.page-section.active{display:block}
+.page-title{font-family:var(--font-display);font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;color:var(--white)}
+.page-sub{font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:2rem}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:1.5rem;transition:border-color .2s}
+.stat-card:hover{border-color:rgba(0,184,148,.3)}
+.stat-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem;font-weight:600}
+.stat-num{font-family:var(--font-display);font-size:2.2rem;font-weight:900;line-height:1;color:var(--white)}
+.stat-num.green{color:var(--accent)}.stat-num.blue{color:var(--accent2)}.stat-num.red{color:var(--red)}.stat-num.yellow{color:var(--yellow)}
+.stat-sub{font-size:.68rem;color:rgba(255,255,255,.3);margin-top:.4rem}
+
+/* ── FLASH SALE CONTROL ── */
+.flash-control{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:1.5rem;margin-bottom:2rem}
+.fc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.fc-title{font-family:var(--font-display);font-size:1.2rem;font-weight:700;text-transform:uppercase;color:var(--white)}
+.toggle-wrap{display:flex;align-items:center;gap:.8rem}
+.toggle{width:48px;height:26px;background:rgba(255,255,255,.15);border-radius:13px;position:relative;cursor:pointer;transition:background .3s;border:none}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .3s}
+.toggle.on::after{transform:translateX(22px)}
+.toggle-label{font-size:.78rem;color:rgba(255,255,255,.5)}
+.fc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.fc-field label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.4rem;display:block}
+.fc-field input,.fc-field select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;outline:none;transition:border-color .2s}
+.fc-field input:focus,.fc-field select:focus{border-color:var(--accent)}
+.fc-field select option{background:var(--black)}
+.save-btn{background:var(--accent);color:var(--black);border:none;padding:.65rem 1.5rem;font-family:var(--font-display);font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-top:1rem}
+.save-btn:hover{background:var(--accent-dark);color:var(--white)}
+
+/* ── TABLE ── */
+.table-wrap{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);overflow:hidden;margin-bottom:2rem}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.table-title{font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white)}
+.table-actions{display:flex;gap:.5rem}
+.tbl-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:.3rem .8rem;font-family:var(--font-display);font-size:.72rem;font-weight:600;text-transform:uppercase;cursor:pointer;transition:all .2s;letter-spacing:.06em}
+.tbl-btn:hover{background:var(--accent);border-color:var(--accent);color:var(--black)}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--font-display);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.4);padding:.8rem 1.2rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+td{padding:.75rem 1.2rem;font-size:.8rem;color:rgba(255,255,255,.75);border-bottom:1px solid rgba(255,255,255,.04)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.03)}
+.status-pill{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:20px;font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.sp-pending{background:rgba(253,203,110,.15);color:var(--yellow)}
+.sp-processing{background:rgba(9,132,227,.15);color:var(--accent2)}
+.sp-shipped{background:rgba(0,184,148,.15);color:var(--accent)}
+.sp-delivered{background:rgba(0,184,148,.25);color:#00d9aa}
+.sp-cancelled{background:rgba(232,67,147,.15);color:var(--red)}
+.action-btn{background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.5);padding:.2rem .5rem;font-size:.62rem;cursor:pointer;transition:all .2s;letter-spacing:.05em;font-family:var(--font-display);font-weight:600;text-transform:uppercase}
+.action-btn:hover{background:var(--accent);color:var(--black)}
+.action-btn.del:hover{background:var(--red);color:white}
+.empty-state{padding:3rem;text-align:center;color:rgba(255,255,255,.3);font-family:var(--font-display);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem}
+.loading-state{padding:2rem;text-align:center}
+.mini-spin{width:24px;height:24px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .8rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PRODUCTS TABLE ── */
+.p-thumb{width:40px;height:40px;object-fit:cover;background:rgba(255,255,255,.08);flex-shrink:0}
+.p-thumb-wrap{display:flex;align-items:center;gap:.7rem}
+.stock-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.25rem .5rem;font-family:var(--font-body);font-size:.78rem;width:60px;outline:none;text-align:center;transition:border-color .2s}
+.stock-input:focus{border-color:var(--accent)}
+.stock-low-warn{color:var(--yellow);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+/* ── TOAST ── */
+.a-toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--accent);color:var(--black);padding:.8rem 1.4rem;font-family:var(--font-display);font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;z-index:9999;animation:fadeUp .3s ease;border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── ADD PRODUCT FORM ── */
+.add-form{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:1.5rem;margin-bottom:2rem;display:none}
+.add-form.open{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem}
+.form-col{display:flex;flex-direction:column;gap:.3rem}
+.form-col label{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:600}
+.form-col input,.form-col select,.form-col textarea{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:.6rem .8rem;font-family:var(--font-body);font-size:.82rem;outline:none;transition:border-color .2s;width:100%}
+.form-col input:focus,.form-col select:focus,.form-col textarea:focus{border-color:var(--accent)}
+.form-col select option{background:var(--black);color:var(--white)}
+.form-col textarea{resize:vertical;min-height:70px}
+.form-full{grid-column:1/-1}
+.form-btns{display:flex;gap:.7rem}
+.form-save{background:var(--accent);color:var(--black);border:none;padding:.65rem 1.5rem;font-family:var(--font-display);font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.form-save:hover{background:var(--accent-dark);color:white}
+.form-cancel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:.65rem 1.5rem;font-family:var(--font-display);font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.form-cancel:hover{background:rgba(232,67,147,.15);border-color:var(--red);color:var(--red)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .admin-wrap{grid-template-columns:1fr;grid-template-rows:56px auto 1fr}
+  .sidebar{position:fixed;top:56px;left:0;bottom:0;z-index:40;transform:translateX(-100%);transition:transform .3s;height:calc(100vh - 56px)}
+  .sidebar.open{transform:translateX(0)}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .fc-row{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr 1fr}
+  table{font-size:.72rem}
+  th,td{padding:.6rem .8rem}
+  .main{padding:1.2rem}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <p class="login-logo">DARTX</p>
+    <p class="login-sub">Admin Panel</p>
+    <div class="l-err" id="l-err">❌ Wrong username or password</div>
+    <label class="l-label">Username</label>
+    <input type="text" class="l-input" id="l-user" placeholder="admin" autocomplete="username">
+    <label class="l-label">Password</label>
+    <input type="password" class="l-input" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="l-btn" onclick="doLogin()">Login to Admin Panel</button>
+    <p class="l-hint">Default: admin / dartx2026</p>
+  </div>
+</div>
+
+<!-- ── ADMIN ── -->
+<div class="admin-wrap" id="admin-wrap">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="tb-brand">
+      DARTX <span>Admin</span>
+      <button style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;display:none" id="mob-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    </div>
+    <div class="tb-right">
+      <div class="tb-status"><div class="status-dot"></div>Live</div>
+      <a href="index.html" class="tb-store-link" target="_blank">View Store ↗</a>
+      <button class="tb-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-section">
+      <p class="nav-section-title">Overview</p>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+    </div>
+    <div class="nav-section">
+      <p class="nav-section-title">Store</p>
+      <div class="nav-item" onclick="showPage('orders',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Orders <span class="nav-badge" id="orders-badge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('products',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Products
+      </div>
+      <div class="nav-item" onclick="showPage('flashsale',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Flash Sale
+      </div>
+    </div>
+    <div class="nav-section">
+      <p class="nav-section-title">Settings</p>
+      <div class="nav-item" onclick="showPage('settings',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page-section active" id="page-dashboard">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Welcome back! Here's what's happening with DARTX today.</p>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><p class="stat-label">Total Orders</p><p class="stat-num green" id="stat-orders">—</p><p class="stat-sub">All time</p></div>
+        <div class="stat-card"><p class="stat-label">Pending Orders</p><p class="stat-num yellow" id="stat-pending">—</p><p class="stat-sub">Needs action</p></div>
+        <div class="stat-card"><p class="stat-label">Total Products</p><p class="stat-num blue" id="stat-products">—</p><p class="stat-sub">In catalog</p></div>
+        <div class="stat-card"><p class="stat-label">Low Stock</p><p class="stat-num red" id="stat-lowstock">—</p><p class="stat-sub">≤ 5 units</p></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><p class="table-title">Recent Orders</p><button class="tbl-btn" onclick="showPage('orders',document.querySelector('.nav-item:nth-child(2)'))">View All</button></div>
+        <div id="recent-orders-table"><div class="loading-state"><div class="mini-spin"></div><p style="font-size:.72rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Loading orders...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="page-section" id="page-orders">
+      <h1 class="page-title">Orders</h1>
+      <p class="page-sub">Manage all customer orders. Change status, view details.</p>
+      <div class="table-wrap">
+        <div class="table-head">
+          <p class="table-title">All Orders</p>
+          <div class="table-actions">
+            <select id="order-filter" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:.3rem .6rem;font-size:.7rem;cursor:pointer;outline:none" onchange="renderOrders()">
+              <option value="all">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Processing">Processing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+            <button class="tbl-btn" onclick="loadData()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="orders-table"><div class="loading-state"><div class="mini-spin"></div><p style="font-size:.72rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="page-section" id="page-products">
+      <h1 class="page-title">Products</h1>
+      <p class="page-sub">View all products. Edit stock levels and manage catalog.</p>
+      <div style="display:flex;gap:.7rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="save-btn" onclick="toggleAddForm()">+ Add New Product</button>
+        <button class="tbl-btn" onclick="loadData()" style="padding:.6rem 1.2rem">🔄 Refresh</button>
+        <a href="https://docs.google.com/spreadsheets/d/1D-uqbXVDstQ8jktyzAu434FyMbFUUgoUgyOuBKWwWvk" target="_blank" class="tbl-btn" style="display:flex;align-items:center;padding:.6rem 1.2rem;color:rgba(255,255,255,.6);text-decoration:none;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-family:var(--font-display);font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase">📊 Edit in Google Sheets</a>
+      </div>
+      <!-- ADD FORM -->
+      <div class="add-form" id="add-form">
+        <p style="font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.2rem">Add New Product</p>
+        <div class="form-grid">
+          <div class="form-col"><label>Product ID *</label><input type="text" id="f-id" placeholder="e.g. S001"></div>
+          <div class="form-col"><label>Product Name *</label><input type="text" id="f-name" placeholder="DARTX Air Sneaker"></div>
+          <div class="form-col"><label>Category *</label>
+            <select id="f-cat">
+              <option value="shoes">Shoes</option>
+              <option value="shirts">T-Shirts</option>
+              <option value="bottoms">Bottoms</option>
+              <option value="hats">Hats</option>
+              <option value="jackets">Jackets</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-col"><label>Price (৳) *</label><input type="number" id="f-price" placeholder="1200"></div>
+          <div class="form-col"><label>Old Price (৳)</label><input type="number" id="f-oprice" placeholder="1500"></div>
+          <div class="form-col"><label>Stock *</label><input type="number" id="f-stock" placeholder="50"></div>
+          <div class="form-col form-full"><label>Image URL</label><input type="text" id="f-img" placeholder="https://postimages.org/..."></div>
+          <div class="form-col form-full"><label>Sizes (comma separated)</label><input type="text" id="f-sizes" placeholder="38,39,40,41,42 or S,M,L,XL"></div>
+          <div class="form-col"><label>Badge</label><select id="f-badge"><option value="">None</option><option value="new">New</option><option value="hot">Hot</option><option value="sale">Sale</option><option value="trending">Trending</option></select></div>
+          <div class="form-col form-full"><label>Description</label><textarea id="f-desc" placeholder="Product description..."></textarea></div>
+        </div>
+        <div class="form-btns">
+          <button class="form-save" onclick="saveNewProduct()">Save Product to Sheet</button>
+          <button class="form-cancel" onclick="toggleAddForm()">Cancel</button>
+        </div>
+        <p style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.8rem">* Product will be added to your Google Sheet via Apps Script</p>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head"><p class="table-title">Product Catalog</p></div>
+        <div id="products-table"><div class="loading-state"><div class="mini-spin"></div><p style="font-size:.72rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- FLASH SALE -->
+    <div class="page-section" id="page-flashsale">
+      <h1 class="page-title">Flash Sale</h1>
+      <p class="page-sub">Control the flash sale banner and timer shown on your store.</p>
+      <div class="flash-control">
+        <div class="fc-head">
+          <p class="fc-title">⚡ Flash Sale Control</p>
+          <div class="toggle-wrap">
+            <button class="toggle" id="flash-toggle" onclick="toggleFlash()"></button>
+            <span class="toggle-label" id="flash-toggle-label">OFF</span>
+          </div>
+        </div>
+        <div class="fc-row">
+          <div class="fc-field"><label>Banner Text</label><input type="text" id="fs-text" value="Up to 40% OFF — Today Only!" placeholder="Sale text..."></div>
+          <div class="fc-field"><label>Discount %</label><input type="number" id="fs-disc" value="40" min="1" max="90"></div>
+          <div class="fc-field"><label>Duration (hours)</label><input type="number" id="fs-hrs" value="8" min="1" max="72"></div>
+        </div>
+        <button class="save-btn" onclick="saveFlashSettings()">💾 Save & Apply</button>
+        <p style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.8rem">Changes appear on your store immediately after saving.</p>
+      </div>
+      <div class="flash-control">
+        <p style="font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1rem">Preview</p>
+        <div id="flash-preview" style="background:linear-gradient(90deg,#e84393,#e8533a,#fdcb6e);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <span style="font-family:var(--font-display);font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;background:rgba(0,0,0,.25);padding:.2rem .5rem;color:white">⚡ Flash Sale</span>
+            <span id="preview-text" style="font-family:var(--font-display);font-size:.95rem;font-weight:900;text-transform:uppercase;color:white">Up to 40% OFF — Today Only!</span>
+          </div>
+          <span style="font-family:var(--font-display);font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.25);color:white;padding:.3rem .9rem;border:1px solid rgba(255,255,255,.35)">Shop Sale</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page-section" id="page-settings">
+      <h1 class="page-title">Settings</h1>
+      <p class="page-sub">Manage store configuration and admin credentials.</p>
+      <div class="flash-control" style="max-width:500px">
+        <p style="font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.2rem">Store Info</p>
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div class="fc-field"><label>WhatsApp Number</label><input type="text" id="s-wa" value="8801XXXXXXXXX" placeholder="880XXXXXXXXXX"></div>
+          <div class="fc-field"><label>Store Email</label><input type="text" id="s-email" value="dartxbd64@gmail.com"></div>
+          <div class="fc-field"><label>Delivery Fee (৳)</label><input type="number" id="s-dfee" value="80"></div>
+          <div class="fc-field"><label>Free Delivery Above (৳)</label><input type="number" id="s-free" value="5000"></div>
+        </div>
+        <button class="save-btn" onclick="saveSettings()" style="margin-top:1.2rem">💾 Save Settings</button>
+      </div>
+      <div class="flash-control" style="max-width:500px;margin-top:1.5rem">
+        <p style="font-family:var(--font-display);font-size:1rem;font-weight:700;text-transform:uppercase;color:var(--white);margin-bottom:1.2rem">Change Admin Password</p>
+        <div style="display:flex;flex-direction:column;gap:.8rem">
+          <div class="fc-field"><label>New Username</label><input type="text" id="s-user" placeholder="admin"></div>
+          <div class="fc-field"><label>New Password</label><input type="password" id="s-pass" placeholder="New password"></div>
+        </div>
+        <button class="save-btn" onclick="changePassword()" style="margin-top:1.2rem;background:var(--accent2)">🔐 Update Credentials</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const SHEET_ID='1D-uqbXVDstQ8jktyzAu434FyMbFUUgoUgyOuBKWwWvk';
+const PRODUCTS_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Products`;
+const ORDERS_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Orders`;
+const APPS_SCRIPT='https://script.google.com/macros/s/AKfycbzPRNVIVa4SIU2QqEqqYZmItIj6Pb6l2Ji8NEpjH40e20PIK4t-x0yYS0VdxSLVFAgf/exec';
+
+// ── AUTH ──
+const ADMIN_KEY='dartx_admin_creds';
+function getCreds(){return JSON.parse(localStorage.getItem(ADMIN_KEY)||'{"user":"admin","pass":"dartx2026"}');}
+function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value.trim();
+  const creds=getCreds();
+  if(u===creds.user&&p===creds.pass){
+    sessionStorage.setItem('dartx_admin_ok','1');
+    document.getElementById('login-wrap').style.display='none';
+    document.getElementById('admin-wrap').classList.add('visible');
+    document.getElementById('mob-menu-btn').style.display='block';
+    loadData();
+  } else {
+    document.getElementById('l-err').style.display='block';
+    setTimeout(()=>document.getElementById('l-err').style.display='none',3000);
+  }
+}
+function doLogout(){sessionStorage.removeItem('dartx_admin_ok');location.reload()}
+// check session
+if(sessionStorage.getItem('dartx_admin_ok')==='1'){
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('admin-wrap').classList.add('visible');
+  document.getElementById('mob-menu-btn').style.display='block';
+}
+
+// ── NAVIGATION ──
+function showPage(id,el){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  if(id==='orders')renderOrders();
+  if(id==='products')renderProducts();
+}
+
+// ── DATA ──
+let allOrders=[],allProds=[];
+async function loadData(){
+  await Promise.all([loadOrders(),loadProds()]);
+  renderDashboard();
+}
+async function loadOrders(){
+  try{
+    const res=await fetch(ORDERS_URL);const txt=await res.text();
+    const json=JSON.parse(txt.substr(47).slice(0,-2));
+    const rows=json.table.rows||[];
+    allOrders=rows.map(r=>({
+      id:r.c[0]?.v||'',date:r.c[1]?.v||'',name:r.c[2]?.v||'',
+      phone:r.c[3]?.v||'',address:r.c[4]?.v||'',items:r.c[5]?.v||'',
+      total:r.c[6]?.v||0,status:r.c[7]?.v||'Pending',note:r.c[8]?.v||''
+    })).filter(o=>o.id);
+    document.getElementById('orders-badge').textContent=allOrders.filter(o=>o.status==='Pending').length||0;
+  }catch(e){allOrders=[]}
+}
+async function loadProds(){
+  try{
+    const res=await fetch(PRODUCTS_URL);const txt=await res.text();
+    const json=JSON.parse(txt.substr(47).slice(0,-2));
+    const rows=json.table.rows||[];
+    allProds=rows.map((r,i)=>({
+      idx:i,id:String(r.c[0]?.v||i),name:r.c[1]?.v||'',
+      category:(r.c[2]?.v||'').toLowerCase().trim(),
+      price:parseFloat(r.c[3]?.v)||0,old_price:parseFloat(r.c[4]?.v)||0,
+      image:r.c[5]?.v||'',badge:(r.c[6]?.v||''),
+      stock:parseInt(r.c[7]?.v)||0,description:r.c[8]?.v||'',
+    })).filter(p=>p.name);
+  }catch(e){allProds=[]}
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  document.getElementById('stat-orders').textContent=allOrders.length;
+  document.getElementById('stat-pending').textContent=allOrders.filter(o=>o.status==='Pending'||!o.status).length;
+  document.getElementById('stat-products').textContent=allProds.length;
+  document.getElementById('stat-lowstock').textContent=allProds.filter(p=>p.stock>0&&p.stock<=5).length;
+  const recent=allOrders.slice(-5).reverse();
+  document.getElementById('recent-orders-table').innerHTML=renderOrderTable(recent,true);
+}
+
+// ── ORDERS ──
+function renderOrders(){
+  const filter=document.getElementById('order-filter')?.value||'all';
+  let list=filter==='all'?allOrders:allOrders.filter(o=>o.status===filter);
+  list=[...list].reverse();
+  document.getElementById('orders-table').innerHTML=renderOrderTable(list,false);
+}
+function renderOrderTable(list,mini){
+  if(!list.length)return`<p class="empty-state">No orders found</p>`;
+  const statusPill=s=>{const m={'Pending':'sp-pending','Processing':'sp-processing','Shipped':'sp-shipped','Delivered':'sp-delivered','Cancelled':'sp-cancelled'};return`<span class="status-pill ${m[s]||'sp-pending'}">${s||'Pending'}</span>`};
+  return`<table><thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th>${mini?'':'<th>Date</th><th>Action</th>'}</tr></thead><tbody>${list.map(o=>`<tr>
+    <td style="font-family:monospace;font-size:.72rem;color:var(--accent)">${o.id}</td>
+    <td><strong style="color:white">${o.name}</strong><br><span style="color:rgba(255,255,255,.4);font-size:.7rem">${o.phone}</span></td>
+    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,.5);font-size:.72rem">${o.items}</td>
+    <td style="font-family:var(--font-display);font-weight:700;color:var(--accent)">৳ ${Number(o.total).toLocaleString()}</td>
+    <td>${statusPill(o.status)}</td>
+    ${mini?'':`<td style="color:rgba(255,255,255,.4);font-size:.72rem">${o.date}</td>
+    <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
+      <button class="action-btn" onclick="updateStatus('${o.id}','Processing')">Processing</button>
+      <button class="action-btn" onclick="updateStatus('${o.id}','Shipped')">Shipped</button>
+      <button class="action-btn" onclick="updateStatus('${o.id}','Delivered')">Delivered</button>
+      <button class="action-btn del" onclick="updateStatus('${o.id}','Cancelled')">Cancel</button>
+    </div></td>`}
+  </tr>`).join('')}</tbody></table>`;
+}
+async function updateStatus(orderId,status){
+  showAToast(`Updating order ${orderId} → ${status}...`);
+  try{
+    await fetch(APPS_SCRIPT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_order_status',order_id:orderId,status})});
+    // Update locally
+    const o=allOrders.find(x=>x.id===orderId);if(o)o.status=status;
+    renderOrders();renderDashboard();
+    showAToast(`✓ Order ${orderId} marked as ${status}`);
+  }catch(e){showAToast('Error updating order')}
+}
+
+// ── PRODUCTS ──
+function renderProducts(){
+  if(!allProds.length){document.getElementById('products-table').innerHTML='<div class="loading-state"><div class="mini-spin"></div><p style="font-size:.72rem;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Loading products...</p></div>';return}
+  document.getElementById('products-table').innerHTML=`<table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead><tbody>${allProds.map(p=>`<tr>
+    <td><div class="p-thumb-wrap">${p.image?`<img class="p-thumb" src="${p.image}" alt="${p.name}">`:'<div class="p-thumb"></div>'}<div><strong style="color:white;font-size:.8rem">${p.name}</strong><br><span style="color:rgba(255,255,255,.3);font-size:.65rem;font-family:monospace">#${p.id}</span></div></div></td>
+    <td style="text-transform:capitalize;color:rgba(255,255,255,.6)">${p.category}</td>
+    <td style="font-family:var(--font-display);font-weight:700;color:var(--accent)">৳ ${p.price.toLocaleString()}${p.old_price?`<br><s style="color:var(--gray);font-size:.7rem">৳ ${p.old_price.toLocaleString()}</s>`:''}</td>
+    <td><input class="stock-input" type="number" value="${p.stock}" min="0" onchange="saveStock('${p.id}',this.value)" title="Edit stock">${p.stock<=5&&p.stock>0?`<br><span class="stock-low-warn">⚠ Low!</span>`:p.stock===0?`<br><span style="color:var(--red);font-size:.58rem;font-weight:700;text-transform:uppercase">Out of Stock</span>`:''}</td>
+    <td>${p.stock>0?`<span class="status-pill sp-shipped">In Stock</span>`:`<span class="status-pill sp-cancelled">Out</span>`}</td>
+  </tr>`).join('')}</tbody></table>`;
+}
+async function saveStock(productId,newStock){
+  try{
+    await fetch(APPS_SCRIPT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_stock',product_id:productId,stock:parseInt(newStock)})});
+    const p=allProds.find(x=>x.id===productId);if(p)p.stock=parseInt(newStock);
+    showAToast(`✓ Stock updated for #${productId}`);
+    renderProducts();renderDashboard();
+  }catch(e){showAToast('Error saving stock')}
+}
+
+// ── ADD PRODUCT FORM ──
+function toggleAddForm(){document.getElementById('add-form').classList.toggle('open')}
+async function saveNewProduct(){
+  const id=document.getElementById('f-id').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const cat=document.getElementById('f-cat').value;
+  const price=document.getElementById('f-price').value;
+  const oprice=document.getElementById('f-oprice').value;
+  const stock=document.getElementById('f-stock').value;
+  const img=document.getElementById('f-img').value.trim();
+  const sizes=document.getElementById('f-sizes').value.trim();
+  const badge=document.getElementById('f-badge').value;
+  const desc=document.getElementById('f-desc').value.trim();
+  if(!id||!name||!price||!stock){showAToast('Fill in required fields (*) ');return}
+  showAToast('Saving product...');
+  const data={action:'add_product',id,name,category:cat,price,old_price:oprice||'',image:img,badge,stock,description:desc,sizes};
+  try{
+    await fetch(APPS_SCRIPT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    showAToast(`✓ Product "${name}" saved! Refresh to see it.`);
+    toggleAddForm();
+    setTimeout(()=>loadData(),1500);
+  }catch(e){showAToast('Note: save via Google Sheets directly too')}
+}
+
+// ── FLASH SALE ──
+let flashOn=JSON.parse(localStorage.getItem('dartx_flash_on')||'false');
+function updateFlashToggle(){
+  const btn=document.getElementById('flash-toggle');
+  const lbl=document.getElementById('flash-toggle-label');
+  btn.classList.toggle('on',flashOn);
+  lbl.textContent=flashOn?'ON':'OFF';
+}
+updateFlashToggle();
+function toggleFlash(){
+  flashOn=!flashOn;
+  localStorage.setItem('dartx_flash_on',JSON.stringify(flashOn));
+  localStorage.setItem('dartx_flash_active',JSON.stringify(flashOn));
+  updateFlashToggle();
+  showAToast(flashOn?'⚡ Flash Sale activated on store!':'Flash Sale turned off');
+}
+function saveFlashSettings(){
+  const txt=document.getElementById('fs-text').value;
+  const hrs=parseInt(document.getElementById('fs-hrs').value)||8;
+  localStorage.setItem('dartx_flash_text',txt);
+  localStorage.setItem('dartx_flash_hrs',hrs);
+  document.getElementById('preview-text').textContent=txt;
+  if(flashOn){localStorage.setItem('dartx_flash_active','true');localStorage.setItem('dartx_flash_text',txt);localStorage.setItem('dartx_flash_hrs',hrs)}
+  showAToast('✓ Flash sale settings saved!');
+}
+
+// ── SETTINGS ──
+function saveSettings(){
+  const wa=document.getElementById('s-wa').value.trim();
+  const email=document.getElementById('s-email').value.trim();
+  const dfee=document.getElementById('s-dfee').value;
+  const free=document.getElementById('s-free').value;
+  localStorage.setItem('dartx_wa',wa);
+  localStorage.setItem('dartx_email',email);
+  localStorage.setItem('dartx_dfee',dfee);
+  localStorage.setItem('dartx_free_delivery',free);
+  showAToast('✓ Settings saved!');
+}
+function changePassword(){
+  const u=document.getElementById('s-user').value.trim();
+  const p=document.getElementById('s-pass').value.trim();
+  if(!u||!p){showAToast('Fill in both fields');return}
+  localStorage.setItem(ADMIN_KEY,JSON.stringify({user:u,pass:p}));
+  showAToast('✓ Credentials updated! Use new password next login.');
+}
+
+// ── TOAST ──
+function showAToast(msg){
+  document.querySelectorAll('.a-toast').forEach(t=>t.remove());
+  const el=document.createElement('div');el.className='a-toast';el.textContent=msg;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),3000);
+}
+
+// Load data if already logged in
+if(sessionStorage.getItem('dartx_admin_ok')==='1')loadData();
+</script>
+</body>
+</html>
